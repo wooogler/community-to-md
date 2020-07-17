@@ -1,0 +1,11 @@
+{
+  "name": "community-to-md",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/wooogler/community-to-md.git",
+  "author": "woogler <leesang627@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer-core": "^5.1.0"
+  }
+}
