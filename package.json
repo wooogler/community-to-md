@@ -6,6 +6,8 @@
   "author": "woogler <leesang627@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "puppeteer-core": "^5.1.0"
+    "markdown-it": "^11.0.0",
+    "puppeteer-core": "^5.1.0",
+    "turndown": "^6.0.0"
   }
 }
