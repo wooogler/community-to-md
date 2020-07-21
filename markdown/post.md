@@ -10,3 +10,5 @@ draft: false
 `youtube:https://www.youtube.com/embed/5wdykAmFj9w`
 
 틴탑이 벌써 10주년이라니 시간이 정말 금방가네요 ㄷㄷ
+
+원본 URL: [https://www.youtube.com/embed/5wdykAmFj9w](https://www.youtube.com/embed/5wdykAmFj9w)

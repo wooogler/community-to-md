@@ -13,20 +13,6 @@ const crawler = async () => {
       userDataDir: './user_data',
     })
     const page = await browser.newPage();
-    // await page.setRequestInterception(true);
-
-    // page.on('request', (req) => {
-    //   switch(req.resourceType()) {
-    //     case 'stylesheet':
-    //     case 'font':
-    //     case 'image':
-    //       req.abort();
-    //       break;
-    //     default:
-    //       req.continue();
-    //       break;
-    //   }
-    // })
 
     await page.setViewport({
       width: 1300,
@@ -42,38 +28,53 @@ const crawler = async () => {
       await page.waitForSelector('.button_logout');
     }
 
-    await page.goto('https://www.clien.net/service/board/park/15186926');
-    await page.waitForSelector('article');
-    const article = await page.evaluate(() => {
-      const html = document.querySelector('.post_article').innerHTML;
-      const date = document.querySelector('.post_author span').innerText.split(' ').splice(0,2).join(' ');
-      const title = document.querySelector('.post_subject>span').innerText;
-
-      return {title, date, html}
-    })
-
-    const turndownService = new TurndownService({
-      blankReplacement (content, node) {
-        const types = ['SCRIPT', 'IFRAME']
-        if (types.indexOf(node.nodeName) !== -1) {
-          return `\n\n${node.outerHTML}\n\n`
-        } else {
-          const output = []
-          node.childNodes.forEach((child) => {
-            if (types.indexOf(child.nodeName) !== -1) {
-              output.push(child.src)
-            }
-          })
-          if (output.length) {
-            return '\n\n`youtube:' + output.join('\n\n') + '`\n\n'
-          } else {
-            return node.isBlock ? '\n\n' : ''
-          }
-        }
+    for(let i=0;;i++) {
+      await page.goto('https://www.clien.net/service/mypage/myArticle?&type=articles&sk=title&sv=&po='+i);
+      if(await page.$('.list_empty')){
+        break;
       }
-    });
-    const article_md = turndownService.turndown(article.html);
-    const post_md = 
+      await page.waitForSelector('.report_label');
+      const links = await page.evaluate(() => {
+        const articles = document.querySelectorAll('.list_subject');
+        return [...articles]
+          .filter((article) => article.href)
+          .map((article) => article.href)
+      })
+
+      for (const link of links) {
+        await page.goto(link);
+        await page.waitForSelector('article');
+
+        const article = await page.evaluate(() => {
+          const html = document.querySelector('.post_article').innerHTML;
+          const date = document.querySelector('.post_author span').innerText.split(' ').splice(1,2).join(' ');
+          const title = document.querySelector('.post_subject>span').innerText;
+
+          return {title, date, html}
+        })
+
+        const turndownService = new TurndownService({
+          blankReplacement (content, node) {
+            const types = ['SCRIPT', 'IFRAME']
+            if (types.indexOf(node.nodeName) !== -1) {
+              return `\n\n${node.outerHTML}\n\n`
+            } else {
+              const output = []
+              node.childNodes.forEach((child) => {
+                if (types.indexOf(child.nodeName) !== -1) {
+                  output.push(child.src)
+                }
+              })
+              if (output.length) {
+                return '\n\n`youtube:' + output.join('\n\n') + '`\n\n'
+              } else {
+                return node.isBlock ? '\n\n' : ''
+              }
+            }
+          }
+        });
+        const article_md = turndownService.turndown(article.html);
+        const post_md = 
 `---
 title: '${article.title}'
 date: ${article.date}
@@ -81,25 +82,18 @@ category: 'clien'
 draft: false
 ---
 
-${article_md}`
-    fs.writeFile(__dirname+'/markdown/post.md', post_md, 'utf8', function(error){ console.log('write end') });
-    
-    // await page.goto('https://www.clien.net/service/mypage/myArticle?&type=articles&sk=title&sv=&po=0');
-    // await page.waitForSelector('.report_label');
-    // const links = await page.evaluate(() => {
-    //   const articles = document.querySelectorAll('.list_subject')
-    //   return [...articles].map((article) => {
-    //     return article.href;
-    //   })
-    // })
+${article_md}
 
-    // for (const link of links) {
-    //   await page.goto(link);
-    //   await page.waitForSelector('article');
+원본 URL: [${link}](${link})`
+        const filename = article.date.split(' ').join('_');
+        fs.writeFile(__dirname+`/markdown/${filename}.md`, post_md, 'utf8', function(error){ console.log(`write ${filename}.md`) });
+        await page.goBack();
+        await page.waitForSelector('.report_label');
+      }
       
-    //   await page.goBack();
-    //   await page.waitForSelector('.report_label');
-    // }
+    }
+
+    console.log('finish!');
     
   } catch(e) {
     console.error(e);
