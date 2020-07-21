@@ -38,7 +38,7 @@ const crawler = async () => {
       await page.type('.input_id', process.env.ID);
       await page.type('.input_pw', process.env.PASSWORD);
       await page.click('.button_submit');
-      await page.waitForNavigation();
+      await page.waitForSelector('.button_logout');
     }
 
     await page.goto('https://www.clien.net/service/board/park/15186926');
@@ -47,16 +47,28 @@ const crawler = async () => {
       return document.querySelector('.post_article').innerHTML;
     })
 
-    const turndownService = new TurndownService();
-    turndownService.keep((node,options) => {
-      node.getAttribute('src');
-    })
-    // turndownService.addRule('youtube', {
-    //   filter: 'iframe',
-    //   replacement: (content,node,options) => {
-    //     return '`youtube:'+node.src+'`';
-    //   }
-    // })
+    const 
+
+    const turndownService = new TurndownService({
+      blankReplacement (content, node) {
+        const types = ['SCRIPT', 'IFRAME']
+        if (types.indexOf(node.nodeName) !== -1) {
+          return `\n\n${node.outerHTML}\n\n`
+        } else {
+          const output = []
+          node.childNodes.forEach((child) => {
+            if (types.indexOf(child.nodeName) !== -1) {
+              output.push(child.src)
+            }
+          })
+          if (output.length) {
+            return '\n\n`youtube:' + output.join('\n\n') + '`\n\n'
+          } else {
+            return node.isBlock ? '\n\n' : ''
+          }
+        }
+      }
+    });
     const md = turndownService.turndown(html);
     console.log(md);
     
