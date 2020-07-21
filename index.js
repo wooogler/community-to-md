@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 const dotenv = require('dotenv');
 const TurndownService = require('turndown');
+const fs = require('fs');
 
 dotenv.config();
 
@@ -43,11 +44,13 @@ const crawler = async () => {
 
     await page.goto('https://www.clien.net/service/board/park/15186926');
     await page.waitForSelector('article');
-    const html = await page.evaluate(() => {
-      return document.querySelector('.post_article').innerHTML;
-    })
+    const article = await page.evaluate(() => {
+      const html = document.querySelector('.post_article').innerHTML;
+      const date = document.querySelector('.post_author span').innerText.split(' ').splice(0,2).join(' ');
+      const title = document.querySelector('.post_subject>span').innerText;
 
-    const 
+      return {title, date, html}
+    })
 
     const turndownService = new TurndownService({
       blankReplacement (content, node) {
@@ -69,8 +72,17 @@ const crawler = async () => {
         }
       }
     });
-    const md = turndownService.turndown(html);
-    console.log(md);
+    const article_md = turndownService.turndown(article.html);
+    const post_md = 
+`---
+title: '${article.title}'
+date: ${article.date}
+category: 'clien'
+draft: false
+---
+
+${article_md}`
+    fs.writeFile(__dirname+'/markdown/post.md', post_md, 'utf8', function(error){ console.log('write end') });
     
     // await page.goto('https://www.clien.net/service/mypage/myArticle?&type=articles&sk=title&sv=&po=0');
     // await page.waitForSelector('.report_label');
