@@ -47,10 +47,10 @@ const crawler = async () => {
 
         const article = await page.evaluate(() => {
           const html = document.querySelector('.post_article').innerHTML;
-          const date = document.querySelector('.post_author span').innerText.split(' ').splice(1,2).join(' ');
+          const date = document.querySelector('.post_author span').innerText.split(' ').splice(1,2).join('T');
           const title = document.querySelector('.post_subject>span').innerText;
-
-          return {title, date, html}
+          const board = document.querySelector('.board_name a').innerText;
+          return {title, date, html, board}
         })
 
         const turndownService = new TurndownService({
@@ -77,8 +77,11 @@ const crawler = async () => {
         const post_md = 
 `---
 title: '${article.title}'
-date: ${article.date}
+date: '${article.date}'
+template: 'post'
 category: 'clien'
+tags: 
+  - '${article.board}'
 draft: false
 ---
 
