@@ -79,7 +79,7 @@ const crawler = async () => {
 title: '${article.title}'
 date: '${article.date}'
 template: 'post'
-category: 'clien'
+category: '클리앙'
 tags: 
   - '${article.board}'
 draft: false
