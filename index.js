@@ -48,7 +48,7 @@ const crawler = async () => {
         const article = await page.evaluate(() => {
           const html = document.querySelector('.post_article').innerHTML;
           const date = document.querySelector('.post_author span').innerText.split(' ').splice(1,2).join('T');
-          const title = document.querySelector('.post_subject>span').innerText;
+          const title = document.querySelector('.post_subject>span:not(.post_category)').innerText;
           const board = document.querySelector('.board_name a').innerText;
           return {title, date, html, board}
         })
