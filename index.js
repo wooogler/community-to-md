@@ -28,7 +28,7 @@ const crawler = async () => {
       await page.waitForSelector('.button_logout');
     }
 
-    for(let i=0;;i++) {
+    for(let i=18;;i++) {
       await page.goto('https://www.clien.net/service/mypage/myArticle?&type=articles&sk=title&sv=&po='+i);
       if(await page.$('.list_empty')){
         break;
@@ -42,8 +42,11 @@ const crawler = async () => {
       })
 
       for (const link of links) {
-        await page.goto(link);
-        await page.waitForSelector('article');
+        await Promise.race([
+          page.goto(link),
+          page.waitForSelector('article')
+        ])
+        await page.waitFor(500);
 
         const article = await page.evaluate(() => {
           const html = document.querySelector('.post_article').innerHTML;
@@ -90,8 +93,12 @@ ${article_md}
 원본 URL: [${link}](${link})`
         const filename = article.date.split(' ').join('_');
         fs.writeFile(__dirname+`/markdown/${filename}.md`, post_md, 'utf8', function(error){ console.log(`write ${filename}.md`) });
-        await page.goBack();
-        await page.waitForSelector('.report_label');
+        
+        await Promise.race([
+          page.goBack(),
+          page.waitForSelector('.report_label'),
+        ])
+        await page.waitFor(500);
       }
       
     }
